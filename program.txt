@@ -1,5 +1,43 @@
-a b
-c
-d e
-f
-g
+static PyObject *namemapper_valueForKey(PyObject *self, PyObject *args)
+{
+    PyObject *obj;
+    char *key;
+
+    if (!PyArg_ParseTuple(args, "Os", &obj, &key)) {
+        return NULL;
+    }
+
+    return PyNamemapper_valueForKey(obj, key);
+}
+
+static PyObject *namemapper_valueForName(PYARGS)
+{
+    PyObject *obj;
+    char *name;
+    int executeCallables = 0;
+    int useDottedNotation = 1;
+
+    char *nameCopy = NULL;
+    char *tmpPntr1 = NULL;
+    char *tmpPntr2 = NULL;
+    char *nameChunks[MAXCHUNKS];
+    int numChunks;
+
+    PyObject *theValue;
+
+    static char *kwlist[] = {"obj", "name", "executeCallables", "useDottedNotation", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Os|ii", kwlist,  &obj, &name, &executeCallables, &useDottedNotation)) {
+        return NULL;
+    }
+
+    createNameCopyAndChunks();
+
+    theValue = PyNamemapper_valueForName(obj, nameChunks, numChunks, executeCallables, useDottedNotation);
+    free(nameCopy);
+    if (wrapInternalNotFoundException(name)) {
+        theValue = NULL;
+    }
+
+    return theValue;
+}
